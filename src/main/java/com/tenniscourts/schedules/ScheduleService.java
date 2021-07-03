@@ -1,8 +1,10 @@
 package com.tenniscourts.schedules;
 
+import com.tenniscourts.tenniscourts.TennisCourtDTO;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -32,4 +34,6 @@ public class ScheduleService {
     public List<ScheduleDTO> findSchedulesByTennisCourtId(Long tennisCourtId) {
         return scheduleMapper.map(scheduleRepository.findByTennisCourt_IdOrderByStartDateTime(tennisCourtId));
     }
+
+
 }

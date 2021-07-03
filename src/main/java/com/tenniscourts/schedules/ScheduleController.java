@@ -15,6 +15,7 @@ public class ScheduleController extends BaseRestController {
     private final ScheduleService scheduleService;
 
     //TODO: implement rest and swagger
+
     public ResponseEntity<Void> addScheduleTennisCourt(CreateScheduleRequestDTO createScheduleRequestDTO) {
         return ResponseEntity.created(locationByEntity(scheduleService.addSchedule(createScheduleRequestDTO.getTennisCourtId(), createScheduleRequestDTO).getId())).build();
     }
