@@ -2,7 +2,6 @@ package com.tenniscourts.tenniscourts;
 
 import com.tenniscourts.config.BaseRestController;
 import lombok.AllArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -13,7 +12,6 @@ import javax.validation.Valid;
 @RestController
 public class TennisCourtController extends BaseRestController {
 
-    @Autowired
     private final TennisCourtService tennisCourtService;
 
     //TODO: implement swagger
