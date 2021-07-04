@@ -20,20 +20,23 @@ public class ReservationService {
 
     private final ScheduleRepository scheduleRepository;
 
+    private final ScheduleService scheduleService;
+
     private final ScheduleMapper scheduleMapper;
 
     public ReservationDTO bookReservation(CreateReservationRequestDTO createReservationRequestDTO) {
-//        ReservationDTO obj = new ReservationDTO();
-//        obj.setId(null);
-//        //TODO exception Optional
-//        obj.setSchedule(scheduleRepository.findById(createReservationRequestDTO.getScheduleId()).map(scheduleMapper::map));
-//        obj.setReservationStatus(ReservationStatus.READY_TO_PLAY.name());
-//        obj.setValue(new BigDecimal(200.00));
-//        obj.setGuestId(createReservationRequestDTO.getGuestId());
-//        obj.setScheduledId(createReservationRequestDTO.getScheduleId());
-//
-
-        throw new UnsupportedOperationException();
+        ReservationDTO obj = new ReservationDTO();
+        obj.setId(null);
+        //TODO exception Optional
+//        obj.setSchedule(scheduleRepository.findById(createReservationRequestDTO.getScheduleId())
+//                .map(scheduleMapper::map).orElseThrow(() -> new EntityNotFoundException("Schedule id: "
+//                        + createReservationRequestDTO.getScheduleId() + " not found")));
+        obj.setSchedule(scheduleService.findSchedule(createReservationRequestDTO.getScheduleId()));
+        obj.setReservationStatus(ReservationStatus.READY_TO_PLAY.name());
+        obj.setValue(new BigDecimal(200.00));
+        obj.setGuestId(createReservationRequestDTO.getGuestId());
+        obj.setScheduledId(createReservationRequestDTO.getScheduleId());
+       return reservationMapper.map(reservationRepository.saveAndFlush(reservationMapper.map(obj)));
     }
 
     public ReservationDTO findReservation(Long reservationId) {
@@ -105,5 +108,6 @@ public class ReservationService {
                 .build());
         newReservation.setPreviousReservation(reservationMapper.map(previousReservation));
         return newReservation;
+        //return reservationMapper.map(reservationRepository.save(previousReservation));
     }
 }
