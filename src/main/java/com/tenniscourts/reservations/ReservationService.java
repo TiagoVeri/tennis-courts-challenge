@@ -1,6 +1,10 @@
 package com.tenniscourts.reservations;
 
 import com.tenniscourts.exceptions.EntityNotFoundException;
+import com.tenniscourts.guests.Guest;
+import com.tenniscourts.guests.GuestDTO;
+import com.tenniscourts.guests.GuestMapper;
+import com.tenniscourts.guests.GuestService;
 import com.tenniscourts.schedules.*;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,19 +28,28 @@ public class ReservationService {
 
     private final ScheduleMapper scheduleMapper;
 
+    private final GuestService guestService;
+
+    private final GuestMapper guestMapper;
+
     public ReservationDTO bookReservation(CreateReservationRequestDTO createReservationRequestDTO) {
-        ReservationDTO obj = new ReservationDTO();
+            return reservationMapper.map(bookReservationForDB(createReservationRequestDTO));
+
+    }
+    public Reservation bookReservationForDB(CreateReservationRequestDTO createReservationRequestDTO) {
+        Reservation obj = new Reservation();
+        GuestDTO guest = guestService.findGuestById(createReservationRequestDTO.getGuestId());
         obj.setId(null);
-        //TODO exception Optional
-//        obj.setSchedule(scheduleRepository.findById(createReservationRequestDTO.getScheduleId())
-//                .map(scheduleMapper::map).orElseThrow(() -> new EntityNotFoundException("Schedule id: "
-//                        + createReservationRequestDTO.getScheduleId() + " not found")));
-        obj.setSchedule(scheduleService.findSchedule(createReservationRequestDTO.getScheduleId()));
-        obj.setReservationStatus(ReservationStatus.READY_TO_PLAY.name());
-        obj.setValue(new BigDecimal(200.00));
-        obj.setGuestId(createReservationRequestDTO.getGuestId());
-        obj.setScheduledId(createReservationRequestDTO.getScheduleId());
-       return reservationMapper.map(reservationRepository.save(reservationMapper.map(obj)));
+        //TODO: Users can't schedule same hour for the same court
+        obj.setSchedule(scheduleRepository.findById(createReservationRequestDTO.getScheduleId())
+                .orElseThrow(() -> {
+                    throw new EntityNotFoundException("Schedule not found.");
+                }));
+        obj.setReservationStatus(ReservationStatus.READY_TO_PLAY);
+        obj.setValue(new BigDecimal(100.00));
+        obj.setGuest(guestMapper.map(guest));
+        obj.setSchedule(scheduleMapper.map(scheduleService.findSchedule(createReservationRequestDTO.getScheduleId())));
+        return reservationRepository.save(obj);
     }
 
     public ReservationDTO findReservation(Long reservationId) {
@@ -90,13 +103,14 @@ public class ReservationService {
         return BigDecimal.ZERO;
     }
 
-    /*TODO: This method actually not fully working, find a way to fix the issue when it's throwing the error:
-            "Cannot reschedule to the same slot.*/
     public ReservationDTO rescheduleReservation(Long previousReservationId, Long scheduleId) {
         Reservation previousReservation = reservationMapper.map(findReservation(previousReservationId));
+        
+        //TODO: Users can't schedule same hour for the same court
         if (scheduleId.equals(previousReservation.getSchedule().getId())) {
             throw new IllegalArgumentException("Cannot reschedule to the same slot.");
         }
+
         previousReservation = cancel(previousReservationId);
         previousReservation.setReservationStatus(ReservationStatus.RESCHEDULED);
         reservationRepository.save(previousReservation);
@@ -107,6 +121,5 @@ public class ReservationService {
                 .build());
         newReservation.setPreviousReservation(reservationMapper.map(previousReservation));
         return newReservation;
-        //return reservationMapper.map(reservationRepository.save(previousReservation));
     }
 }
