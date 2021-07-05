@@ -48,7 +48,7 @@ public class ReservationService {
                     throw new EntityNotFoundException("Schedule not found.");
                 }));
         obj.setReservationStatus(ReservationStatus.READY_TO_PLAY);
-        obj.setValue(new BigDecimal(100.00));
+        obj.setValue(new BigDecimal(110.00));
         obj.setGuest(guestMapper.map(guest));
         obj.setSchedule(scheduleMapper.map(scheduleService.findSchedule(createReservationRequestDTO.getScheduleId())));
         return reservationRepository.save(obj);
@@ -60,6 +60,10 @@ public class ReservationService {
         });
     }
 
+    public ReservationDTO confirmGameCompletion(Long reservationId) {
+        return reservationMapper.map(this.confirmGame(reservationId));
+    }
+
     public ReservationDTO cancelReservation(Long reservationId) {
         return reservationMapper.map(this.cancel(reservationId));
     }
@@ -67,10 +71,23 @@ public class ReservationService {
     private Reservation cancel(Long reservationId) {
         return reservationRepository.findById(reservationId).map(reservation -> {
 
-            this.validateCancellation(reservation);
+            this.validateCancellationOrConfirmGamePlayed(reservation, 1);
 
             BigDecimal refundValue = getRefundValue(reservation);
             return this.updateReservation(reservation, refundValue, ReservationStatus.CANCELLED);
+
+        }).orElseThrow(() -> {
+            throw new EntityNotFoundException("Reservation not found.");
+        });
+    }
+
+    private Reservation confirmGame(Long reservationId) {
+        return reservationRepository.findById(reservationId).map(reservation -> {
+
+            this.validateCancellationOrConfirmGamePlayed(reservation, 2);
+
+            BigDecimal refundValue = new BigDecimal(10);
+            return this.updateReservation(reservation, refundValue, ReservationStatus.GAME_PLAYED);
 
         }).orElseThrow(() -> {
             throw new EntityNotFoundException("Reservation not found.");
@@ -85,14 +102,16 @@ public class ReservationService {
         return reservationRepository.save(reservation);
     }
 
-    private void validateCancellation(Reservation reservation) {
+    private void validateCancellationOrConfirmGamePlayed(Reservation reservation, int option) {
         if (!ReservationStatus.READY_TO_PLAY.equals(reservation.getReservationStatus())) {
             throw new IllegalArgumentException("Cannot cancel/reschedule because it's not in ready to play status.");
         }
-
-        if (reservation.getSchedule().getStartDateTime().isBefore(LocalDateTime.now())) {
-            throw new IllegalArgumentException("Can cancel/reschedule only future dates.");
+        if(option == 1){
+            if (reservation.getSchedule().getStartDateTime().isBefore(LocalDateTime.now())) {
+                throw new IllegalArgumentException("Can cancel/reschedule only future dates.");
+            }
         }
+
     }
 
     public BigDecimal getRefundValue(Reservation reservation) {
@@ -108,7 +127,7 @@ public class ReservationService {
             return  generateRefundCharge(value, 0.5);
         }
         // and 75% between 0:01 and 2:00 in advance
-        if(hours > 0 * 60 && hours < 2 * 60){
+        if(hours > 0 && hours < 2 * 60){
             return  generateRefundCharge(value, 0.25);
         }
 
@@ -140,6 +159,9 @@ public class ReservationService {
     }
 
     private BigDecimal generateRefundCharge(BigDecimal value, Double percentage){
-        return value.multiply(new BigDecimal(percentage)).setScale(2, RoundingMode.HALF_EVEN);
+        return value.subtract(new BigDecimal(10))
+                .multiply(new BigDecimal(percentage))
+                .add(new BigDecimal(10))
+                .setScale(2, RoundingMode.HALF_EVEN);
     }
 }

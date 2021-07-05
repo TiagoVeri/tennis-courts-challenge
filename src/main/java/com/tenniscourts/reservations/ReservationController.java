@@ -41,6 +41,14 @@ public class ReservationController extends BaseRestController {
         return ResponseEntity.ok(reservationService.cancelReservation(reservationId));
     }
 
+    @ApiOperation(value = "Confirm a Game played")
+    @ApiResponses(value = {
+            @ApiResponse(code = 201, message = "Reservation Used")})
+    @PostMapping(value = "/{reservationId}/confirmgame")
+    public ResponseEntity<ReservationDTO> confirmGameCompletion(@PathVariable Long reservationId) {
+        return ResponseEntity.ok(reservationService.confirmGameCompletion(reservationId));
+    }
+
     @ApiOperation(value = "Reschedule a Reservation")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Reservation Rescheduled")})
