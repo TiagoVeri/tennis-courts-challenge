@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 
@@ -95,9 +96,23 @@ public class ReservationService {
     }
 
     public BigDecimal getRefundValue(Reservation reservation) {
-        long hours = ChronoUnit.HOURS.between(LocalDateTime.now(), reservation.getSchedule().getStartDateTime());
+        long hours = ChronoUnit.MINUTES.between(LocalDateTime.now(), reservation.getSchedule().getStartDateTime());
+        BigDecimal value = reservation.getValue();
 
-        if (hours >= 24) {
+        //25% 12:00 and 23:59 hours in advance
+        if(hours >= 12 * 60 && hours < 24 * 60){
+            return  generateRefundCharge(value, 0.75);
+        }
+        // 50% between 2:00 and 11:59 in advance
+        if(hours >= 2 * 60 && hours < 12 * 60){
+            return  generateRefundCharge(value, 0.5);
+        }
+        // and 75% between 0:01 and 2:00 in advance
+        if(hours > 0 * 60 && hours < 2 * 60){
+            return  generateRefundCharge(value, 0.25);
+        }
+
+        if (hours >= 24 * 60) {
             return reservation.getValue();
         }
 
@@ -122,5 +137,9 @@ public class ReservationService {
                 .build());
         newReservation.setPreviousReservation(reservationMapper.map(previousReservation));
         return newReservation;
+    }
+
+    private BigDecimal generateRefundCharge(BigDecimal value, Double percentage){
+        return value.multiply(new BigDecimal(percentage)).setScale(2, RoundingMode.HALF_EVEN);
     }
 }

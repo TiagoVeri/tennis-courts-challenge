@@ -32,11 +32,8 @@ public class ScheduleController extends BaseRestController {
 
     @ApiOperation(value = "Find schedules by Dates")
     @GetMapping(value = "/searchscheduledates")
-    //TODO test different DateTimeFormat avoiding error 400 - bad request
-    public ResponseEntity<List<ScheduleDTO>> findSchedulesByDates(@RequestParam(name = "startDate")
-                                                                  @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")LocalDate startDate,
-                                                                  @RequestParam(name= "endDate")
-                                                                  @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm") LocalDate endDate) {
+    public ResponseEntity<List<ScheduleDTO>> findSchedulesByDates(@RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+                                                                  @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         return ResponseEntity.ok(scheduleService.findSchedulesByDates(LocalDateTime.of(startDate, LocalTime.of(0, 0)), LocalDateTime.of(endDate, LocalTime.of(23, 59))));
     }
 

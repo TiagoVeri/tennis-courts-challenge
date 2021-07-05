@@ -39,7 +39,7 @@ public class ScheduleService {
 
     public List<ScheduleDTO> findSchedulesByDates(LocalDateTime startDate, LocalDateTime endDate) {
         return scheduleMapper.map(scheduleRepository
-                                .findAllByEndDateTimeLessThanEqualAndStartDateTimeGreaterThanEqual(startDate,endDate ));
+                                .findAllByStartDateTimeAfterAndEndDateTimeBefore(startDate,endDate));
     }
 
     public ScheduleDTO findSchedule(Long scheduleId) {
