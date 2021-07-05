@@ -36,6 +36,7 @@ public class ReservationService {
             return reservationMapper.map(bookReservationForDB(createReservationRequestDTO));
 
     }
+
     public Reservation bookReservationForDB(CreateReservationRequestDTO createReservationRequestDTO) {
         Reservation obj = new Reservation();
         GuestDTO guest = guestService.findGuestById(createReservationRequestDTO.getGuestId());
@@ -105,7 +106,7 @@ public class ReservationService {
 
     public ReservationDTO rescheduleReservation(Long previousReservationId, Long scheduleId) {
         Reservation previousReservation = reservationMapper.map(findReservation(previousReservationId));
-        
+
         //TODO: Users can't schedule same hour for the same court
         if (scheduleId.equals(previousReservation.getSchedule().getId())) {
             throw new IllegalArgumentException("Cannot reschedule to the same slot.");
