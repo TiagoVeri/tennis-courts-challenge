@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Locale;
 
 @Service
 @AllArgsConstructor
@@ -38,5 +39,13 @@ public class GuestService {
         guestRepository.saveAndFlush(guestMapper.map(guest));
     }
 
+    public GuestDTO findGuestByName(String guest){
+        GuestDTO obj = guestMapper.map(guestRepository.findByName(guest));
+
+        if(obj == null){
+            throw new EntityNotFoundException("Guest named '" +guest.toUpperCase()+"' doesn't exist");
+        }
+        return obj;
+    }
 
 }

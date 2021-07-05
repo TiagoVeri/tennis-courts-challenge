@@ -34,6 +34,12 @@ public class GuestController extends BaseRestController {
         return ResponseEntity.ok(guestService.findGuestById(guestId));
     }
 
+    @GetMapping(value = "/search-name/{guestName}")
+    public ResponseEntity<GuestDTO> findGuestByName(@PathVariable String guestName) {
+        return ResponseEntity.ok(guestService.findGuestByName(guestName));
+    }
+
+
     @ApiOperation(value = "Find All Guests")
     @GetMapping
     public ResponseEntity<List<GuestDTO>> findAllGuests(){
@@ -56,6 +62,5 @@ public class GuestController extends BaseRestController {
         return ResponseEntity.noContent().build();
     }
 
-    //TODO find Guests by name
 
 }
