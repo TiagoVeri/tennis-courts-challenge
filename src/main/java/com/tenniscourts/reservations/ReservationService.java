@@ -42,11 +42,6 @@ public class ReservationService {
         Reservation obj = new Reservation();
         GuestDTO guest = guestService.findGuestById(createReservationRequestDTO.getGuestId());
         obj.setId(null);
-        //TODO: Users can't schedule same hour for the same court
-        obj.setSchedule(scheduleRepository.findById(createReservationRequestDTO.getScheduleId())
-                .orElseThrow(() -> {
-                    throw new EntityNotFoundException("Schedule not found.");
-                }));
         obj.setReservationStatus(ReservationStatus.READY_TO_PLAY);
         obj.setValue(new BigDecimal(110.00));
         obj.setGuest(guestMapper.map(guest));
@@ -141,7 +136,6 @@ public class ReservationService {
     public ReservationDTO rescheduleReservation(Long previousReservationId, Long scheduleId) {
         Reservation previousReservation = reservationMapper.map(findReservation(previousReservationId));
 
-        //TODO: Users can't schedule same hour for the same court
         if (scheduleId.equals(previousReservation.getSchedule().getId())) {
             throw new IllegalArgumentException("Cannot reschedule to the same slot.");
         }
