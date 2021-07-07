@@ -1,12 +1,10 @@
 package com.tenniscourts.guests;
 
 import com.tenniscourts.exceptions.EntityNotFoundException;
-import com.tenniscourts.tenniscourts.TennisCourtDTO;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Locale;
 
 @Service
 @AllArgsConstructor

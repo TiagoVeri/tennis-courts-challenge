@@ -2,14 +2,14 @@ package com.tenniscourts.reservations;
 
 import com.tenniscourts.exceptions.EntityNotFoundException;
 import com.tenniscourts.guests.Guest;
-import com.tenniscourts.guests.GuestDTO;
 import com.tenniscourts.guests.GuestMapper;
+import com.tenniscourts.guests.GuestRepository;
 import com.tenniscourts.guests.GuestService;
-import com.tenniscourts.schedules.*;
+import com.tenniscourts.schedules.ScheduleMapper;
+import com.tenniscourts.schedules.ScheduleService;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDateTime;
@@ -23,13 +23,13 @@ public class ReservationService {
 
     private final ReservationMapper reservationMapper;
 
-    private final ScheduleRepository scheduleRepository;
-
     private final ScheduleService scheduleService;
 
     private final ScheduleMapper scheduleMapper;
 
     private final GuestService guestService;
+
+    private final GuestRepository guestRepository;
 
     private final GuestMapper guestMapper;
 
@@ -40,11 +40,13 @@ public class ReservationService {
 
     public Reservation bookReservationForDB(CreateReservationRequestDTO createReservationRequestDTO) {
         Reservation obj = new Reservation();
-        GuestDTO guest = guestService.findGuestById(createReservationRequestDTO.getGuestId());
+        Guest guest = guestRepository.findById(createReservationRequestDTO.getGuestId()).orElseThrow(() -> {
+            throw new EntityNotFoundException("Guest not found.");
+        });
         obj.setId(null);
         obj.setReservationStatus(ReservationStatus.READY_TO_PLAY);
         obj.setValue(new BigDecimal(110.00));
-        obj.setGuest(guestMapper.map(guest));
+        obj.setGuest(guest);
         obj.setSchedule(scheduleMapper.map(scheduleService.findSchedule(createReservationRequestDTO.getScheduleId())));
         return reservationRepository.save(obj);
     }
@@ -79,9 +81,13 @@ public class ReservationService {
     private Reservation confirmGame(Long reservationId) {
         return reservationRepository.findById(reservationId).map(reservation -> {
 
+            if(reservation.getSchedule().getStartDateTime().isAfter(LocalDateTime.now())){
+                throw new IllegalArgumentException("You Can't confirm a match from a future date");
+            }
             this.validateCancellationOrConfirmGamePlayed(reservation, 2);
 
             BigDecimal refundValue = new BigDecimal(10);
+
             return this.updateReservation(reservation, refundValue, ReservationStatus.GAME_PLAYED);
 
         }).orElseThrow(() -> {
@@ -133,6 +139,7 @@ public class ReservationService {
         return BigDecimal.ZERO;
     }
 
+    //TASK DONE user can insert the same Schedule without causing error in the Reservation register
     public ReservationDTO rescheduleReservation(Long previousReservationId, Long scheduleId) {
         Reservation previousReservation = reservationMapper.map(findReservation(previousReservationId));
 

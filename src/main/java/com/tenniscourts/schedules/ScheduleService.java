@@ -4,22 +4,19 @@ import com.tenniscourts.exceptions.EntityNotFoundException;
 import com.tenniscourts.tenniscourts.TennisCourtDTO;
 import com.tenniscourts.tenniscourts.TennisCourtMapper;
 import com.tenniscourts.tenniscourts.TennisCourtService;
-import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 
 @Service
 public class ScheduleService {
 
-    //TODO verify why lombok constructor is breaking the app
+    
     @Autowired
     private  ScheduleRepository scheduleRepository;
     @Autowired
